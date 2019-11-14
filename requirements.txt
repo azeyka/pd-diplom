@@ -1,2 +1,8 @@
-Django==2.0.5
-pytz==2018.5
+pytz
+requests
+django
+djangorestframework
+django-rest-passwordreset
+pyyaml
+django-cors-headers
+reportLab
