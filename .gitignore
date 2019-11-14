@@ -270,3 +270,4 @@ sketch
 # End of https://www.gitignore.io/api/react,python
 Pipfile.lock
 Pipfile.lock
+orders/frontend/package-lock.json
