@@ -9,7 +9,7 @@
 3. Запуск сервера
    `python orders/manage.py runserver`
 
-## Запуск фронтенда
+## Запуск фронтенда (React)
 
 1. Переход в папку с форнтендом
    `cd orders/frontend`
