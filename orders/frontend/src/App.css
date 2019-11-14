@@ -1,0 +1,66 @@
+html, body, #root, .App {
+    height: 100%;
+}
+
+.App {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.header{
+    flex: 0 0 auto;
+}
+
+.content {
+    flex: 1 0 auto;
+}
+
+.not_displayed{
+    display: none;
+}
+
+.table-input {
+    border: none;
+    outline: none;
+    padding: 0.25rem 1rem;
+}
+
+.button-unstyled {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.button-unstyled:focus {
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.form-control.invalid {
+    border-color: rgba(204, 9, 9, 0.867);
+    background-color: #ffeaea
+}
+
+.nav-link:focus {
+    outline: none;
+}
+
+.form-control.valid {
+    border-color: #00bd1f;
+    background-color: #eaffeb;
+}
+
+.invalid-feedback {
+    display: none;
+}
+
+.invalid-feedback.visible {
+    display: block;
+}
+
+
+
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons')
