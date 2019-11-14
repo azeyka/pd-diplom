@@ -1,10 +1,19 @@
-## Порядок запуска
+# Порядок запуска
 
-1. Создание БД
-   `python backend/manage.py migrate`
-2. Запуск сервера
-   `python backend/manage.py runserver`
-3. Запуск форнтенда
-   `cd frontend`
+## Запуск бэкенда
+
+1. Установка пакетов
+   `pipenv install`
+2. Создание миграций
+   `python orders/manage.py migrate`
+3. Запуск сервера
+   `python orders/manage.py runserver`
+
+## Запуск фронтенда
+
+1. Переход в папку с форнтендом
+   `cd orders/frontend`
+2. Установка зависимостей
    `npm install`
+3. Запуск
    `npm start`
