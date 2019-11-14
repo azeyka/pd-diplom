@@ -1,7 +1,0 @@
-requests
-django
-djangorestframework
-django-rest-passwordreset
-pyyaml
-django-cors-headers
-reportLab
