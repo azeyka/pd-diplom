@@ -1,7 +1,6 @@
 import Fetch from "./Fetch";
 
 export default function ChangeOrder(onSuccess, onFail, id, state) {
-  console.log(id, state);
   const formData = new FormData();
   formData.append("id", id);
   formData.append("state", state);
