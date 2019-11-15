@@ -18,6 +18,8 @@ class Pdf():
         # Создаем путь к файлу
         self.file_name = f'Заказ_{order.id}.pdf'
         self.file_dir = os.path.join(settings.BASE_DIR, 'orders_pdf')
+        if not os.path.exists(self.file_dir):
+            os.makedirs(self.file_dir)
         self.path = os.path.join(self.file_dir, self.file_name)
 
         # Создаем файл
