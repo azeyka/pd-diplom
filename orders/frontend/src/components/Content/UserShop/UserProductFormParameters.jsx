@@ -60,7 +60,11 @@ function UserProductFormParameters({
 
   return (
     <Table className="table-hover">
-      <Title className="h5">Параметры</Title>
+      <TableRow>
+        <TableData colspan={2}>
+          <Title className="h5">Параметры</Title>
+        </TableData>
+      </TableRow>
 
       <TableRow>
         <TableData isHead={true}>Название</TableData>
@@ -130,7 +134,7 @@ function UserProductFormParameters({
 }
 
 UserProductFormParameters.propTypes = {
-  productParameters: PropTypes.object.isRequired,
+  productParameters: PropTypes.array.isRequired,
   setproductParameters: PropTypes.func.isRequired
 };
 

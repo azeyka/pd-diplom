@@ -52,12 +52,8 @@ function UserShopProducts() {
               </ListItem>
             ) : (
               items.map(product => (
-                <ListItem className="list-group-item bg-light">
-                  <UserProduct
-                    key={product.id}
-                    product={product}
-                    reload={getProductList}
-                  />
+                <ListItem key={product.id} className="list-group-item bg-light">
+                  <UserProduct product={product} reload={getProductList} />
                 </ListItem>
               ))
             )}
