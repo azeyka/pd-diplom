@@ -10,7 +10,7 @@ import NavTabs from "../../Elements/NavTabs";
 import ActiveTab from "../../Elements/ActiveTab";
 
 function Ordering({ cartList, totalSumm }) {
-  const [contact, setcontact] = useState("");
+  const [contact, setcontact] = useState({});
   const [switcher, setSwitcher] = useState(1);
 
   const switchTab = isForward => {
@@ -75,7 +75,7 @@ function Ordering({ cartList, totalSumm }) {
 
 Ordering.propTypes = {
   cartList: PropTypes.array.isRequired,
-  totalSumm: PropTypes.string.isRequired
+  totalSumm: PropTypes.number.isRequired
 };
 
 export default Ordering;
