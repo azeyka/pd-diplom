@@ -1,53 +1,60 @@
 import React from "react";
 import PropTypes from "prop-types";
+import Table from "../../Elements/Table";
+import TableRow from "../../Elements/TableRow";
+import TableData from "../../Elements/TableData";
+import ButtonStyledLinkOrButton from "../../Elements/ButtonStyledLinkOrButton";
 
 function OderingProductList({ switchTab, cartList, totalSumm }) {
   return (
     <div>
-      <table className="table table-bordered mt-3">
-        <thead>
-          <tr>
-            <th scope="col">Наименование</th>
-            <th scope="col">Цена</th>
-            <th scope="col">Кол-во</th>
-            <th scope="col">Сумма</th>
-          </tr>
-        </thead>
+      <Table className="table-bordered mt-3">
+        <TableRow>
+          <TableData isHead={true}>Наименование</TableData>
+          <TableData isHead={true}>Цена</TableData>
+          <TableData isHead={true}>Кол-во</TableData>
+          <TableData isHead={true}>Сумма</TableData>
+        </TableRow>
 
         {cartList.map(item => (
-          <tr>
-            <td>{item.product_info.product.name}</td>
-            <td>
+          <TableRow key={item.id}>
+            <TableData>{item.product_info.product.name}</TableData>
+            <TableData>
               {item.product_info.price_rrc}
               <span className="text-muted"> ₽</span>
-            </td>
-            <td>{item.quantity}</td>
-            <td>
+            </TableData>
+            <TableData>{item.quantity}</TableData>
+            <TableData>
               {item.quantity * item.product_info.price_rrc}
               <span className="text-muted"> ₽</span>
-            </td>
-          </tr>
+            </TableData>
+          </TableRow>
         ))}
 
-        <tr>
-          <th colSpan="3">Общая сумма</th>
-          <th>
+        <TableRow>
+          <TableData isHead={true} colspan={3}>
+            Общая сумма
+          </TableData>
+          <TableData isHead={true} colspan={3}>
             {totalSumm}
             <span className="text-muted"> ₽</span>
-          </th>
-        </tr>
-      </table>
+          </TableData>
+        </TableRow>
+      </Table>
 
       <div className="d-flex justify-content-between ">
-        <a href="/cart" className="btn btn-secondary">
+        <ButtonStyledLinkOrButton href="/cart" className="btn btn-secondary">
           <i className="material-icons align-middle">chevron_left</i>
           Отменить заказ
-        </a>
+        </ButtonStyledLinkOrButton>
 
-        <button onClick={() => switchTab(true)} className="btn btn-success">
+        <ButtonStyledLinkOrButton
+          onClick={() => switchTab(true)}
+          className="btn btn-success"
+        >
           Подтвердить
           <i className="material-icons align-middle">chevron_right</i>
-        </button>
+        </ButtonStyledLinkOrButton>
       </div>
     </div>
   );
@@ -55,7 +62,7 @@ function OderingProductList({ switchTab, cartList, totalSumm }) {
 
 OderingProductList.propTypes = {
   switchTab: PropTypes.func.isRequired,
-  totalSumm: PropTypes.string.isRequired,
+  totalSumm: PropTypes.number.isRequired,
   cartList: PropTypes.array.isRequired
 };
 
