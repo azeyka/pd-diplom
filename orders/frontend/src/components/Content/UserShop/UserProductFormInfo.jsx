@@ -1,17 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Table from "../../Elements/Table";
 import TableRow from "../../Elements/TableRow";
 import TableData from "../../Elements/TableData";
 import Title from "../../Elements/Title";
+import Row from "../../Elements/Row";
 
 function UserProductFormInfo({
   handleChange,
   productInfo,
   productName,
   productCategory,
-  categoriesList
+  categoriesList,
+  addNewCategory,
+  setproductCategory
 }) {
+  const [newCategoryName, setnewCategoryName] = useState("");
+  const handleChangeNewCategoryInput = event => {
+    setnewCategoryName(event.target.value);
+  };
+
+  const handleClickAddCategory = event => {
+    event.preventDefault();
+    addNewCategory(newCategoryName);
+    setproductCategory({ name: newCategoryName });
+    setnewCategoryName("");
+  };
+
   const tableInfo = [
     {
       th: "ID",
@@ -45,7 +60,12 @@ function UserProductFormInfo({
 
   return (
     <Table className="table-hover">
-      <Title className="h5">Информация</Title>
+      <TableRow>
+        <TableData colspan={2}>
+          <Title className="h5">Информация</Title>
+        </TableData>
+      </TableRow>
+
       {tableInfo.map(field => (
         <TableRow key={field.name}>
           <TableData isHead={true}>{field.th}</TableData>
@@ -53,7 +73,7 @@ function UserProductFormInfo({
           {field.name === "category" ? (
             <TableData>
               <select
-                className="form-control table-input col-md-12"
+                className="form-control table-input col-md-12 border"
                 name={field.name}
                 value={field.value}
                 onChange={handleChange}
@@ -64,6 +84,25 @@ function UserProductFormInfo({
                   <option key={category.id}>{category.name}</option>
                 ))}
               </select>
+
+              <Row>
+                <input
+                  className="col-md-10 mt-3 ml-3 form-control table-input"
+                  type="text"
+                  name="value"
+                  placeholder="Добавить свою категорию"
+                  value={newCategoryName}
+                  onChange={handleChangeNewCategoryInput}
+                />
+                <button
+                  className="mt-3 ml-2 p-0 button-unstyled"
+                  onClick={handleClickAddCategory}
+                >
+                  <i className="material-icons text-muted">
+                    add_circle_outline
+                  </i>
+                </button>
+              </Row>
             </TableData>
           ) : (
             <TableData>
@@ -84,7 +123,11 @@ function UserProductFormInfo({
 }
 
 UserProductFormInfo.propTypes = {
-  tableInfo: PropTypes.array.isRequired
+  handleChange: PropTypes.func.isRequired,
+  productInfo: PropTypes.object.isRequired,
+  productName: PropTypes.string.isRequired,
+  productCategory: PropTypes.object.isRequired,
+  categoriesList: PropTypes.array.isRequired
 };
 
 export default UserProductFormInfo;

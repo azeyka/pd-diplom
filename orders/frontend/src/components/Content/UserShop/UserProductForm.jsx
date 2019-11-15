@@ -50,6 +50,10 @@ function UserProductForm(props) {
     setformIsShown(false);
   };
 
+  const addNewCategory = name => {
+    setcategoriesList(prev => [...prev, { name }]);
+  };
+
   const handleSubmit = event => {
     event.preventDefault();
     const yamlData = makeYaml();
@@ -78,7 +82,7 @@ function UserProductForm(props) {
       goods: [
         {
           id: productInfo.external_id,
-          category: productCategory.id,
+          category: productCategory.name,
           name: productName,
           model: productInfo.model,
           price: productInfo.price,
@@ -108,6 +112,8 @@ function UserProductForm(props) {
             productName={productName}
             productCategory={productCategory}
             categoriesList={categoriesList}
+            addNewCategory={addNewCategory}
+            setproductCategory={setproductCategory}
           />
           <UserProductFormParameters
             productParameters={productParameters}

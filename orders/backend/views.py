@@ -484,7 +484,6 @@ class ParthnerProducts(APIView):
 
         data = load_yaml(stream, Loader=Loader)
         shop_name = data.get('shop')
-        print(shop_name)
         # Если указано название магазина, то ищем магазин с этим названием
         if shop_name:
             try:
@@ -505,10 +504,19 @@ class ParthnerProducts(APIView):
 
         # Добавление категорий
         for category in data.get('categories'):
-            category_object, _ = Category.objects.get_or_create(name=category.get('name'), id=category.get('id'))
+            category_id = category.get('id')
+            if category_id:
+                category_object, _ = Category.objects.get_or_create(name=category.get('name'), id=category.get('id'))
+            else:
+                category_object, _ = Category.objects.get_or_create(name=category.get('name'))
+
 
         # Добавление товаров
         for item in data.get('goods'):
+            category, _ = Category.objects.get_or_create(name=item.get('category'))
+            category.shops.add(shop)
+            category.save()
+
             try:
                 external_id = item.get('id')
                 product = Product.objects.get(product_infos__external_id=external_id, product_infos__shop=shop)
@@ -517,11 +525,7 @@ class ParthnerProducts(APIView):
                 product.save()
 
             except Product.DoesNotExist:
-                product = Product.objects.create(name=item.get('name'), category_id=item.get('category'))
-
-            category = Category.objects.get(id=item.get('category'))
-            category.shops.add(shop)
-            category.save()
+                product = Product.objects.create(name=item.get('name'), category=category)
 
             try:
                 product_info = ProductInfo.objects.get(product=product)
