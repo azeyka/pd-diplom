@@ -10,7 +10,7 @@ function List(props) {
 }
 
 List.propTypes = {
-  className: PropTypes.string.isRequired,
+  className: PropTypes.string,
   items: PropTypes.array.isRequired
 };
 
