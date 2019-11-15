@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import Contacts from "../Settings/Contacts";
+import ButtonStyledLinkOrButton from "../../Elements/ButtonStyledLinkOrButton";
 
 function OderingContact({ switchTab, contact, setcontact }) {
   const contactHandleClick = clicked => {
@@ -16,20 +17,23 @@ function OderingContact({ switchTab, contact, setcontact }) {
           chosenClassName="bg-chosen border rounded border-success"
         />
       </div>
-      <div className="d-flex justify-content-between ">
-        <button onClick={() => switchTab(false)} className="btn btn-secondary">
+      <div className="d-flex justify-content-between mt-3">
+        <ButtonStyledLinkOrButton
+          onClick={() => switchTab(false)}
+          className="btn btn-secondary"
+        >
           <i className="material-icons align-middle">chevron_left</i>
           Назад
-        </button>
+        </ButtonStyledLinkOrButton>
 
-        <button
+        <ButtonStyledLinkOrButton
           onClick={() => switchTab(true)}
           className="btn btn-success"
-          disabled={!contact}
+          disabled={Object.keys(contact).length === 0}
         >
           Подтвердить выбор
           <i className="material-icons align-middle">chevron_right</i>
-        </button>
+        </ButtonStyledLinkOrButton>
       </div>
     </div>
   );
