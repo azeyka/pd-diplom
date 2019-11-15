@@ -10,7 +10,7 @@ function ListItem(props) {
 }
 
 ListItem.propTypes = {
-  className: PropTypes.string.isRequired
+  className: PropTypes.string
 };
 
 export default ListItem;
