@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { useStore } from "../../../store/useStore";
 import PropTypes from "prop-types";
 import Input from "../../Elements/Input";
 import { Redirect } from "react-router-dom";
 
 function OderingPayment(props) {
+  const { dispatch } = useStore();
+  const showNotification = useCallback(
+    params => dispatch({ type: "show", params: params }),
+    [dispatch]
+  );
+
   const { switchTab, totalSumm, createOrder } = props;
   const [isPayed, setisPayed] = useState(false);
   const [inProcess, setinProcess] = useState(false);
@@ -19,9 +26,9 @@ function OderingPayment(props) {
     event.preventDefault();
     setorderState("Создание заказа..");
     setinProcess(true);
-    createOrder(onSuccess, err => {
-      console.log(err);
-    });
+    createOrder(onSuccess, err =>
+      showNotification({ message: err.toString(), isSuccess: false })
+    );
   };
 
   const onSuccess = data => {
@@ -77,7 +84,7 @@ function OderingPayment(props) {
 
 OderingPayment.propTypes = {
   switchTab: PropTypes.func.isRequired,
-  totalSumm: PropTypes.string.isRequired,
+  totalSumm: PropTypes.number.isRequired,
   createOrder: PropTypes.func.isRequired
 };
 
