@@ -49,7 +49,6 @@ function ProductInfo(props) {
 
   const getProductList = () => {
     const onSucsess = info => {
-      console.log(info);
       if (info.length > 0) {
         setproduct(info[0]);
         setparams(info[0].product_parameters);
