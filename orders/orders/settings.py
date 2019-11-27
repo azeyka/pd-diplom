@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_rest_passwordreset',
     'corsheaders',
-
 ]
 
 MIDDLEWARE = [
@@ -154,3 +153,7 @@ REST_FRAMEWORK = {
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+CELERY_BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-34-249-7-250.eu-west-1.compute.amazonaws.com:16229'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERILIZER = 'json'

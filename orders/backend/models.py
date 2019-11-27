@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_rest_passwordreset.tokens import get_token_generator
+from django.db.models import signals
+from .tasks import send_email
+from django.urls import reverse
+import uuid
 
 
 class User(AbstractUser):
@@ -16,6 +20,8 @@ class User(AbstractUser):
     position = models.CharField(
         verbose_name='Должность', max_length=40, blank=True)
     is_active = models.BooleanField(default=False)
+    verification_uuid = models.UUIDField(
+        'Уникальный код подтверждения', default=uuid.uuid4)
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -23,6 +29,20 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+def user_post_save(sender, instance, signal, *args, **kwargs):
+    if not instance.is_active:
+        send_email.delay(
+            'Подтверждение почты',
+            'Спасибо за регистрцию на нашем сайте!\n\n'
+            'Перейдите по ссылке чтобы активировать аккаунт: '
+            f'http://localhost:3000/verify/{str(instance.verification_uuid)}',
+            [instance.email],
+        )
+
+
+signals.post_save.connect(user_post_save, sender=User)
 
 
 class ConformaionCode(models.Model):
@@ -83,7 +103,8 @@ class Shop(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=40, verbose_name='Название', default='Неизвестная категория')
+    name = models.CharField(
+        max_length=40, verbose_name='Название', default='Неизвестная категория')
     shops = models.ManyToManyField(
         Shop, verbose_name='Магазины', related_name='categories', blank=True)
 
