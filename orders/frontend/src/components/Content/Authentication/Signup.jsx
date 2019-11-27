@@ -6,6 +6,7 @@ import ButtonStyledLinkOrButton from "../../Elements/ButtonStyledLinkOrButton";
 import Title from "../../Elements/Title";
 
 export default function Signup(props) {
+  const [hasRegistered, sethasRegistered] = useState(false);
   const [regForm, setRegForm] = useState({
     firstname: "",
     lastname: "",
@@ -24,20 +25,23 @@ export default function Signup(props) {
     Registration(onSuccess, onFail, regForm);
   };
 
-  const onSuccess = () => {
-    props.history.push(`/confirm/${regForm.username}`);
-  };
-
-  const onFail = errors => {
-    setErrorState(errors);
-  };
+  const onSuccess = () => sethasRegistered(true);
+  const onFail = errors => setErrorState({ ...errors });
 
   const handleChange = event => {
     const { name, value } = event.target;
     setRegForm(prevForm => ({ ...prevForm, [name]: value }));
   };
 
-  return (
+  return hasRegistered ? (
+    <div className="ml-3">
+      <Title className="h3">Вы успешно зарегистрированы!</Title>
+      <p>
+        Вам на почту было отправлено письмо со ссылкой чтобы активировать
+        аккаунт.
+      </p>
+    </div>
+  ) : (
     <form id="reg-form" className="form col-7 m-auto" onSubmit={register}>
       <Title className="medium">Регистрация</Title>
 
