@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from yaml import load as load_yaml, Loader
 from requests import get
+from django.db.models import signals
 
 from backend.modules.send_email import send_email
 from backend.modules.create_pdf import Pdf
@@ -16,7 +17,7 @@ from reportlab.lib.styles import ParagraphStyle
 
 from django.utils.translation import activate, ugettext as _
 from backend.models import User, ConformaionCode, Contact, Shop, Category, ProductInfo, Product, Parameter, \
-    ProductParameter, CartItem, Order, OrderItem, Cart
+    ProductParameter, CartItem, Order, OrderItem, Cart, user_post_save
 from backend.serializers import UserSerializer, ContactSerializer, CategorySerializer, ProductInfoSerializer, \
     ShopSerializer, OrderSerializer, CartSerializer
 
@@ -103,67 +104,19 @@ class UserView(APIView):
         request.user.delete()
         return JsonResponse({'Status': True})
 
-
-class SendConfirmCode(APIView):
-    """
-        Класс для отправки кода подтверждения на почту
-    """
-
-    def post(self, request, *args, **kwargs):
-        # Проверка наличия имени пользователя
-        username = request.data.get('username')
-        if not username:
-            return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
-
-        # Проверка существует ли пользователь с именем
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return JsonResponse({'Status': False, 'Errors': 'Пользоваетля с таким именем не существует.'})
-
-        # Создание кода подтверждения
-        code, _ = ConformaionCode.objects.get_or_create(user=user)
-        code.set()
-        code.save()
-
-        # Отправка кода на почту
-        send_email(
-            'Подтверждение почты',
-            f'Ваш код подтверждения: {code.code}',
-            [user.email])
-
-        return JsonResponse({'Status': True})
-
-
 class ConfirmEmail(APIView):
     """
-        Класс для активации аккаунта с помощью кода подтвержения из email
+        Класс для активации аккаунта
     """
 
-    def post(self, request, *args, **kwargs):
-        username = request.data.get('username')
-        code = request.data.get('code')
-
-        # Проверка наличия необходимых аргументов
-        if not username or not code:
-            return JsonResponse({'Status': False, 'Errors': 'Не заполнены необходимые поля.'})
-
-        # Проверка существует ли пользователь с таким именем
+    def post (self, request, *args, **kwargs):
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(verification_uuid=request.data.get('uuid'), is_active=False)
         except User.DoesNotExist:
-            return JsonResponse({'Status': False, 'Errors': 'Пользоваетля с таким именем не существует.'})
+            return JsonResponse({'Status': False, 'Errors': 'Пользователь не существует или уже подтвержден.'})
 
-        # Проверка токена
-        try:
-            ConformaionCode.objects.get(user=user, code=code)
-        except ConformaionCode.DoesNotExist:
-            return JsonResponse({'Status': False, 'Errors': 'Неверный код подтверждения.'})
-
-        # Активация пользователя
         user.is_active = True
         user.save()
-
         return JsonResponse({'Status': True})
 
 
@@ -191,7 +144,9 @@ class LogIn(APIView):
 
         # Проверка активтрован ли пользователь
         if not user.is_active:
-            return JsonResponse({'Status': False, 'Errors': 'Ваш аккаунт не активирован.'})
+            # Сохраняем чтобы вызвать сигнал отправки на почту ссылки с подтверждением
+            user.save()
+            return JsonResponse({'Status': False, 'Errors': 'Ваш аккаунт не активирован. Проверьте почту!'})
 
         # Аунтефикация пользователя
         user = authenticate(request, username=request.data['username'], password=request.data['password'])
