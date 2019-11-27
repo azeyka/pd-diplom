@@ -26,7 +26,8 @@ class ShopAdmin(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'product_quantity')
+    pass
+    # list_display = ('name', 'product_quantity')
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
