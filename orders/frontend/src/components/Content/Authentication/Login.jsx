@@ -29,8 +29,6 @@ function Login() {
     password: ""
   });
 
-  const [isActivated, setisActivated] = useState(true);
-
   const logIn = event => {
     event.preventDefault();
     LogIn(onSucsess, onFail, logInForm);
@@ -38,7 +36,6 @@ function Login() {
 
   const onFail = err => {
     showNotification({ message: err.toString(), isSuccess: false });
-    if (err === "Ваш аккаунт не активирован.") setisActivated(false);
   };
 
   const onSucsess = info => {
@@ -90,19 +87,9 @@ function Login() {
       >
         Пароль
       </Input>
-      {isActivated ? (
-        <button className="btn btn-primary btn-lg btn-block" type="submit">
-          Войти
-        </button>
-      ) : (
-        <a
-          href={`/confirm/${logInForm.username}`}
-          className="btn btn-success btn-lg btn-block"
-        >
-          Активировать аккаунт
-        </a>
-      )}
-
+      <button className="btn btn-primary btn-lg btn-block" type="submit">
+        Войти
+      </button>
       <ButtonStyledLinkOrButton href="/signup" className="btn btn-block">
         Зарегистрироваться
       </ButtonStyledLinkOrButton>
