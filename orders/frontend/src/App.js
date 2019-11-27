@@ -20,6 +20,7 @@ import Cart from "./components/Content/Cart/Cart";
 import OrderingThanks from "./components/Content/Ordering/OderingThanks";
 import UserShopProducts from "./components/Content/UserShop/UserShopProducts";
 import ProductInfo from "./components/Content/Catalog/ProductCard/ProductInfo";
+import Verification from "./components/Content/Authentication/Verification";
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path="/login" component={Login} />
             <Route path="/logout" component={Logout} />
             <Route path="/confirm/:username" component={Confirmation} />
+            <Route path="/verify/:uuid" component={Verification} />
             <Route path="/settings" component={Settings} />
             <Route path="/regiser_shop" component={RegiserShop} />
             <Route path="/orders" component={OrderTabs} />
