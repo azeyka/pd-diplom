@@ -4,11 +4,19 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pylint = "*"
+autopep8 = "*"
 
 [packages]
 django = "*"
 django-rest-framework = "*"
 requests = "*"
-pyyaml = "*"
 django-cors-headers = "*"
 celery = "*"
+redis = "*"
+reportlab = "*"
+pyyaml = "*"
+django-rest-passwordreset = "*"
+
+[requires]
+python_version = ">3.7"
