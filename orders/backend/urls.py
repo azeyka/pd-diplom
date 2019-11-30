@@ -1,6 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from backend.views import UserView, LogIn, AccountInfo, ConfirmEmail, AccountContacts, \
-    CategoryView, ProductView, PartnerView, PartnerInfo, ParthnerProducts, UserCart, OrderView
+    CategoryViewSet, ProductView, PartnerView, PartnerInfo, ParthnerProducts, UserCart, OrderView
+from rest_framework.routers import DefaultRouter
+
+router = DefaultRouter()
+router.register('', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('registration/', UserView.as_view()),
@@ -8,7 +12,6 @@ urlpatterns = [
     path('login/', LogIn.as_view()),
     path('info/', AccountInfo.as_view()),
     path('contact/', AccountContacts.as_view()),
-    path('categories/', CategoryView.as_view()),
     path('products/', ProductView.as_view()),
     path('partner/', PartnerView.as_view()),
     path('partner_info/', PartnerInfo.as_view()),
@@ -16,5 +19,5 @@ urlpatterns = [
     path('cart/', UserCart.as_view()),
     path('order/', OrderView.as_view()),
     path('verify/', ConfirmEmail.as_view(), name='verify'),
-
+    path('categories/', include(router.urls))
 ]
