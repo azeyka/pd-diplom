@@ -9,17 +9,18 @@ from yaml import load as load_yaml, Loader
 from requests import get
 from django.db.models import signals
 
-from backend.modules.send_email import send_email
 from backend.modules.create_pdf import Pdf
-
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 
 from django.utils.translation import activate, ugettext as _
-from backend.models import User, ConformaionCode, Contact, Shop, Category, ProductInfo, Product, Parameter, \
+from backend.models import User, Contact, Shop, Category, ProductInfo, Product, Parameter, \
     ProductParameter, CartItem, Order, OrderItem, Cart, user_post_save
 from backend.serializers import UserSerializer, ContactSerializer, CategorySerializer, ProductInfoSerializer, \
     ShopSerializer, OrderSerializer, CartSerializer
+from .tasks import do_import, send_email
+
+from rest_framework import viewsets
 
 
 class UserView(APIView):
@@ -37,35 +38,35 @@ class UserView(APIView):
             field = request.data.get(field_name)
             if not field:
                 errors_dict[field_name] = 'Необходимо заполнить.'
+            else:
+                # Проверка пароля
+                if field_name == 'password':
+                    try:
+                        validate_password(request.data['password'])
+                    except Exception as e:
+                        errors_list = []
+                        for error in e:
+                            activate('ru')
+                            errors_list.append(_(error))
+                        errors_dict['password'] = errors_list
 
-            # Проверка пароля
-            if field_name == 'password':
-                try:
-                    validate_password(request.data['password'])
-                except Exception as e:
-                    errors_list = []
-                    for error in e:
-                        activate('ru')
-                        errors_list.append(_(error))
-                    errors_dict['password'] = errors_list
+                # Проверка повтора пароля на совпадение с паролем
+                elif field_name == 'password_repeat':
+                    if request.data['password']:
+                        if not request.data['password'] == request.data['password_repeat']:
+                            errors_dict['password_repeat'] = 'Пароли не совпадают.'
+                    else:
+                        errors_dict['password_repeat'] = 'Сначала придумайте пароль.'
 
-            # Проверка повтора пароля на совпадение с паролем
-            elif field_name == 'password_repeat':
-                if request.data['password']:
-                    if not request.data['password'] == request.data['password_repeat']:
-                        errors_dict['password_repeat'] = 'Пароли не совпадают.'
-                else:
-                    errors_dict['password_repeat'] = 'Сначала придумайте пароль.'
+                # Проверка уникальности логина
+                elif field_name == 'username':
+                    if User.objects.filter(username=request.data['username']):
+                        errors_dict['username'] = 'Пользоваетль с таким именем уже существует.'
 
-            # Проверка уникальности логина
-            elif field_name == 'username':
-                if User.objects.filter(username=request.data['username']):
-                    errors_dict['username'] = 'Пользоваетль с таким именем уже существует.'
-
-            # Проверка уникальности email
-            elif field_name == 'email':
-                if User.objects.filter(email=request.data['email']):
-                    errors_dict['email'] = 'Пользоваетль с таким email уже существует.'
+                # Проверка уникальности email
+                elif field_name == 'email':
+                    if User.objects.filter(email=request.data['email']):
+                        errors_dict['email'] = 'Пользоваетль с таким email уже существует.'
 
         # Если словарь с ошибками не пуст, то отправляем его ответ
         if errors_dict:
@@ -104,14 +105,16 @@ class UserView(APIView):
         request.user.delete()
         return JsonResponse({'Status': True})
 
+
 class ConfirmEmail(APIView):
     """
         Класс для активации аккаунта
     """
 
-    def post (self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
-            user = User.objects.get(verification_uuid=request.data.get('uuid'), is_active=False)
+            user = User.objects.get(
+                verification_uuid=request.data.get('uuid'), is_active=False)
         except User.DoesNotExist:
             return JsonResponse({'Status': False, 'Errors': 'Пользователь не существует или уже подтвержден.'})
 
@@ -149,7 +152,8 @@ class LogIn(APIView):
             return JsonResponse({'Status': False, 'Errors': 'Ваш аккаунт не активирован. Проверьте почту!'})
 
         # Аунтефикация пользователя
-        user = authenticate(request, username=request.data['username'], password=request.data['password'])
+        user = authenticate(
+            request, username=request.data['username'], password=request.data['password'])
 
         if user is not None:
             # Отправляем в ответ токен
@@ -180,7 +184,8 @@ class AccountInfo(APIView):
             return JsonResponse({'Status': False, 'Errors': 'Пользователь не авторизован'})
 
         # Изменение данных
-        serializer = UserSerializer(request.user, data=request.data, partial=True)
+        serializer = UserSerializer(
+            request.user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({'Status': True, 'Info': serializer.data})
@@ -262,8 +267,10 @@ class AccountContacts(APIView):
         id = request.data.get('id')
         if id:
             try:
-                contact = Contact.objects.get(id=request.data['id'], user=request.user)
-                serializer = ContactSerializer(contact, data=request.data, partial=True)
+                contact = Contact.objects.get(
+                    id=request.data['id'], user=request.user)
+                serializer = ContactSerializer(
+                    contact, data=request.data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     return JsonResponse({'Status': True})
@@ -393,7 +400,7 @@ class PartnerInfo(APIView):
             validate_url = URLValidator()
             try:
                 validate_url(url)
-            except ValidationError as e:
+            except ValidationError:
                 errors_dict['url'] = 'Ссылка не валидна'
         else:
             request.data._mutable = True
@@ -442,7 +449,7 @@ class ParthnerProducts(APIView):
         # Если указано название магазина, то ищем магазин с этим названием
         if shop_name:
             try:
-                shop = Shop.objects.get(name=shop_name)
+                shop = Shop.objects.only('id').get(name=shop_name)
             except Shop.DoesNotExist:
                 return JsonResponse({'Status': False, 'Errors': 'Магазин с указаным именем не найден.'})
         # Иначе ищем магазин авторизованного пользователя
@@ -455,59 +462,9 @@ class ParthnerProducts(APIView):
             if request.user.type != 'shop':
                 return JsonResponse({'Status': False, 'Error': 'Только для магазинов'})
 
-            shop = Shop.objects.get(user_id=request.user.id)
+            shop = Shop.objects.only('id').get(user_id=request.user.id)
 
-        # Добавление категорий
-        for category in data.get('categories'):
-            category_id = category.get('id')
-            if category_id:
-                category_object, _ = Category.objects.get_or_create(name=category.get('name'), id=category.get('id'))
-            else:
-                category_object, _ = Category.objects.get_or_create(name=category.get('name'))
-
-
-        # Добавление товаров
-        for item in data.get('goods'):
-            category, _ = Category.objects.get_or_create(name=item.get('category'))
-            category.shops.add(shop)
-            category.save()
-
-            try:
-                external_id = item.get('id')
-                product = Product.objects.get(product_infos__external_id=external_id, product_infos__shop=shop)
-                product.name = item.get('name')
-                product.category_id = item.get('category')
-                product.save()
-
-            except Product.DoesNotExist:
-                product = Product.objects.create(name=item.get('name'), category=category)
-
-            try:
-                product_info = ProductInfo.objects.get(product=product)
-                product_info.external_id = item.get('id')
-                product_info.model = item.get('model')
-                product_info.price = item.get('price')
-                product_info.price_rrc = item.get('price_rrc')
-                product_info.quantity = item.get('quantity')
-                product_info.shop = shop
-                product_info.save()
-
-            except ProductInfo.DoesNotExist:
-                product_info = ProductInfo.objects.create(product_id=product.id,
-                                                          external_id=item['id'],
-                                                          model=item['model'],
-                                                          price=item['price'],
-                                                          price_rrc=item['price_rrc'],
-                                                          quantity=item['quantity'],
-                                                          shop_id=shop.id)
-
-            for name, value in item['parameters'].items():
-                parameter_object, _ = Parameter.objects.get_or_create(name=name)
-                product_parameter, _ = ProductParameter.objects.get_or_create(product_info_id=product_info.id,
-                                                                              parameter_id=parameter_object.id)
-                product_parameter.value = value
-                product_parameter.save()
-
+        do_import.delay(data, shop.id)
         return JsonResponse({'Status': True})
 
     # Удаление продукта
@@ -527,7 +484,8 @@ class ParthnerProducts(APIView):
 
         try:
             shop = Shop.objects.get(user=request.user)
-            product = Product.objects.get(product_infos__external_id=id, product_infos__shop=shop)
+            product = Product.objects.get(
+                product_infos__external_id=id, product_infos__shop=shop)
 
             # Проверка есть ли у этого магазина продукты в этой категории, помимо удаляемого
             another_products_in_category = Product.objects.filter(category=product.category,
@@ -544,26 +502,23 @@ class ParthnerProducts(APIView):
             return JsonResponse({'Status': False, 'Error': 'Продукта с таким ID не существует'}, status=403)
 
 
-class CategoryView(APIView):
+class CategoryViewSet(viewsets.ViewSet):
     """
         Класс для получения списка категорий
     """
 
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+
     # получение списка всех категорий
-    def get(self, request, *args, **kwargs):
-        categories = Category.objects.all()
-        serializer = CategorySerializer(categories, many=True)
+    def list(self, request):
+        serializer = self.serializer_class(self.queryset, many=True)
         return JsonResponse({'Status': True, 'Info': serializer.data})
 
     # получение списка категорий по id магазина
-    def post(self, request, *args, **kwargs):
-        # Если передан параметр shop_id, то отправляем категории именно этого магазина, иначе все имеющиеся
-        shop_id = request.data.get('shop_id')
-        if not shop_id:
-            return JsonResponse({'Status': False, 'Error': 'Не передан id магазина'})
-
-        categories = Category.objects.filter(shops__id=shop_id)
-        serializer = CategorySerializer(categories, many=True)
+    def retrieve(self, request, pk=None):
+        categories = self.queryset.filter(shops__id=pk)
+        serializer = self.serializer_class(categories, many=True)
         return JsonResponse({'Status': True, 'Info': serializer.data})
 
 
@@ -650,10 +605,12 @@ class UserCart(APIView):
         cart, _ = Cart.objects.get_or_create(user=request.user)
         # Проверка есть ли такой товар в корзине
         try:
-            cart_item = CartItem.objects.get(cart=cart, product_info=product_info)
+            cart_item = CartItem.objects.get(
+                cart=cart, product_info=product_info)
         # Если нет, то создаем и добавляем в корзину
         except CartItem.DoesNotExist:
-            cart_item = CartItem.objects.create(cart=cart, product_info=product_info)
+            cart_item = CartItem.objects.create(
+                cart=cart, product_info=product_info)
             cart.items.add(cart_item)
             cart.save()
 
@@ -782,7 +739,8 @@ class OrderView(APIView):
                 # Если до этого был создан заказ для другого магазина, то завершаем создание pdf и отправляем его на почту
                 if prev_order and file:
                     # Завершаем и рисуем таблицу
-                    table_data.append(['Итого', '', '', '', f'{prev_order.total_summ} руб.'])
+                    table_data.append(
+                        ['Итого', '', '', '', f'{prev_order.total_summ} руб.'])
                     file.draw_table(table_data)
 
                     # Сораняем файл и добавляем ссылку на него в модель
@@ -791,7 +749,8 @@ class OrderView(APIView):
                     prev_order.save()
 
                     # Отправляем email с накладной магазину
-                    send_email('У Вас новый заказ', 'Накладная во вложениях', [prev_order.shop.user.email], [file.path])
+                    send_email.delay('У Вас новый заказ', 'Накладная во вложениях', [
+                        prev_order.shop.user.email], [file.path])
                     # И очищаем данные таблицы для следующего заказа
                     table_data = [['', 'Название', 'Цена', 'Кол-во', 'Сумма']]
 
@@ -807,7 +766,8 @@ class OrderView(APIView):
             table_data.append(
                 [
                     i,
-                    Paragraph(cart_item.product_info.product.name, ParagraphStyle('paragraph', fontName='Arial')),
+                    Paragraph(cart_item.product_info.product.name,
+                              ParagraphStyle('paragraph', fontName='Arial')),
                     f'{price} руб.',
                     quantity,
                     f'{summ} руб.'
@@ -823,7 +783,8 @@ class OrderView(APIView):
         file.save()
         order.order_pdf = file.path
         order.save()
-        send_email('У Вас новый заказ', 'Накладная во вложениях', [order.shop.user.email], [file.path])
+        send_email.delay('У Вас новый заказ', 'Накладная во вложениях',
+                         [order.shop.user.email], [file.path])
 
         # Удаляем корзину
         cart.delete()
@@ -850,7 +811,8 @@ class OrderView(APIView):
         # Если заказ с new изменяется на confirmed, assembled или sent, отправляем заказчику на почту накадную
         if order.state == 'new':
             if state == 'confirmed' or state == 'assembled' or state == 'sent':
-                send_email('Ваш заказ подтвержден', 'Накладная во вложениях', [order.user.email], [order.order_pdf])
+                send_email.delay('Ваш заказ подтвержден', 'Накладная во вложениях', [
+                    order.user.email], [order.order_pdf])
 
         # Изменение статуса
         order.state = state
@@ -874,7 +836,8 @@ class OrderView(APIView):
 
     # Меняет статус магазина если все заказы завершены
     def change_status_if_all_orders_finished(self, shop):
-        not_finished_orders = Order.objects.filter(shop=shop).exclude(state='delivered').exclude(state='canceled')
+        not_finished_orders = Order.objects.filter(shop=shop).exclude(
+            state='delivered').exclude(state='canceled')
         if not not_finished_orders:
             shop.state = True
             shop.save()
