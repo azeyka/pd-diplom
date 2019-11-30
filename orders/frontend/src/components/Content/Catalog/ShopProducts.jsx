@@ -50,9 +50,7 @@ function ShopProducts(props) {
   };
 
   const getCategories = id => {
-    const onSucsess = info => {
-      setcategories(info);
-    };
+    const onSucsess = info => setcategories(info);
 
     GetCategories(onSucsess, onFail, id);
   };
@@ -64,9 +62,7 @@ function ShopProducts(props) {
       getCategories(id);
     };
 
-    const onFail = err => {
-      setisShopExist(false);
-    };
+    const onFail = () => setisShopExist(false);
 
     GetShopInfo(onSucsess, onFail, id);
   };
