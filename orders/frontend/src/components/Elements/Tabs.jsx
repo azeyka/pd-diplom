@@ -14,7 +14,9 @@ function Tabs({ tabsList, localStorageName }) {
     activeTab = tabsList.find(tab => tab.id === switcher);
   };
 
-  let activeTab = tabsList.find(tab => tab.id === switcher);
+  let activeTab =
+    tabsList.find(tab => tab.id === switcher) ||
+    tabsList.find(tab => tab.id === 1);
 
   return (
     <div>
