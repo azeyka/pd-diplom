@@ -7,8 +7,6 @@ os.environ.setdefault('FORKED_BY_MULTIPROCESSING', '1')
 
 app = Celery('orders')
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
-
 app.autodiscover_tasks()
 
 
