@@ -46,7 +46,7 @@ def do_import(data, shop_id):
             product = Product.objects.get(
                 product_infos__external_id=external_id, product_infos__shop=shop)
             product.name = item.get('name')
-            product.category_id = item.get('category')
+            product.category = category
             product.save()
 
         except Product.DoesNotExist:
