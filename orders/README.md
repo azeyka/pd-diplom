@@ -4,10 +4,14 @@
 
 1. Установка пакетов
    `pipenv install`
-2. Создание миграций
-   `python orders/manage.py migrate`
-3. Запуск сервера
-   `python orders/manage.py runserver`
+2. Переход в папку с проектом
+   `cd orders`
+3. Создание миграций
+   `python manage.py migrate`
+4. Запуск сервера
+   `python manage.py runserver`
+5. Запуск Celery для асинхронных задач
+   `celery -A orders worker -l info`
 
 ## Запуск фронтенда (React)
 
