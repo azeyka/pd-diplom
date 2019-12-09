@@ -1,0 +1,44 @@
+categories:
+  - id: 2
+    name: Телевизоры
+  - id: 3
+    name: Игры и хобби
+  - id: 4
+    name: Аудиотехника
+
+goods:
+  - id: 1284469
+    category: Телевизоры
+    model: DEXP F22D7200E
+    name: 22" (55 см) Телевизор LED DEXP F22D7200E серый
+    price: 4500
+    price_rrc: 5499
+    quantity: 19
+    parameters:
+      "Диагональ (дюйм)": 22
+      "Разрешение (пикс)": 1920х1080
+      "Тип экрана": Direct LED
+      "Формат экрана": 16:9
+  - id: 7564322
+    category: Игры и хобби
+    model: PlayStation 4 Pro Gamma Chassis Black 1Tb
+    name: Игровая приставка PlayStation 4 Pro Gamma Chassis Black 1Tb
+    price: 32000
+    price_rrc: 33999
+    quantity: 15
+    parameters:
+      "Процессор": AMD Jaguar x86-64
+      "Встроенная память (Гб)": 1024
+      "Цвет": черный
+  - id: 1365716
+    category: Аудиотехника
+    model: CAYIN N3
+    name: Hi-Fi плеер CAYIN N3 Cyan бирюзовый
+    price: 9999
+    price_rrc: 10799
+    quantity: 9
+    parameters:
+      "Диагональ (дюйм)": 2.4
+      "Время непрерывной работы (ч)": 12
+      "Встроенная память (Гб)": нет
+      "Цвет": бирюзовый
