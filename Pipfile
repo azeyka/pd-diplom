@@ -17,6 +17,8 @@ redis = "*"
 reportlab = "*"
 pyyaml = "*"
 django-rest-passwordreset = "*"
+schema = "*"
+djcelery = "*"
 
 [requires]
-python_version = ">3.7"
+python_version = "3.6"
