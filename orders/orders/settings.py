@@ -130,6 +130,7 @@ EMAIL_PORT = 2525
 EMAIL_HOST_USER = "mail_for_exmple@mail.ru"
 EMAIL_HOST_PASSWORD = "HelloWorld!"
 EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
