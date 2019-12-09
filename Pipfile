@@ -18,7 +18,7 @@ reportlab = "*"
 pyyaml = "*"
 django-rest-passwordreset = "*"
 schema = "*"
-djcelery = "*"
+django-celery = "*"
 
 [requires]
 python_version = "3.6"
