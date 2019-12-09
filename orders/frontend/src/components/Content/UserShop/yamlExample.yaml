@@ -1,65 +1,44 @@
 categories:
-  - name: Смартфоны
-  - name: Аксессуары
-  - name: Flash-накопители
+  - id: 2
+    name: Телевизоры
+  - id: 3
+    name: Игры и хобби
+  - id: 4
+    name: Аудиотехника
+
 goods:
-  - id: 4216292
-    category: Смартфоны
-    name: Смартфон Apple iPhone XS Max 512GB (золотистый)
-    price: 110000
-    price_rrc: 116990
-    quantity: 14
+  - id: 1284469
+    category: Телевизоры
+    model: DEXP F22D7200E
+    name: 22" (55 см) Телевизор LED DEXP F22D7200E серый
+    price: 4500
+    price_rrc: 5499
+    quantity: 19
     parameters:
-      - name: Диагональ (дюйм)
-        value: 6.5
-      - name: Разрешение (пикс)
-        value: 2688x1242
-      - name: Встроенная память (Гб)
-        value: 512
-      - name: Цвет
-        value: золотистый
-  - id: 4216313
-    category: Смартфоны
-    name: Смартфон Apple iPhone XR 256GB (красный)
-    price: 65000
-    price_rrc: 69990
+      "Диагональ (дюйм)": 22
+      "Разрешение (пикс)": 1920х1080
+      "Тип экрана": Direct LED
+      "Формат экрана": 16:9
+  - id: 7564322
+    category: Игры и хобби
+    model: PlayStation 4 Pro Gamma Chassis Black 1Tb
+    name: Игровая приставка PlayStation 4 Pro Gamma Chassis Black 1Tb
+    price: 32000
+    price_rrc: 33999
+    quantity: 15
+    parameters:
+      "Процессор": AMD Jaguar x86-64
+      "Встроенная память (Гб)": 1024
+      "Цвет": черный
+  - id: 1365716
+    category: Аудиотехника
+    model: CAYIN N3
+    name: Hi-Fi плеер CAYIN N3 Cyan бирюзовый
+    price: 9999
+    price_rrc: 10799
     quantity: 9
     parameters:
-      - name: Диагональ (дюйм)
-        value: 6.1
-      - name: Разрешение (пикс)
-        value: 1792x828
-      - name: Встроенная память (Гб)
-        value: 256
-      - name: Цвет
-        value: красный
-  - id: 4216226
-    category: Смартфоны
-    name: Смартфон Apple iPhone XR 256GB (черный)
-    price: 65000
-    price_rrc: 69990
-    quantity: 5
-    parameters:
-      - name: Диагональ (дюйм)
-        value: 6.1
-      - name: Разрешение (пикс)
-        value: 1792x828
-      - name: Встроенная память (Гб)
-        value: 256
-      - name: Цвет
-        value: черный
-  - id: 4672670
-    category: Смартфоны
-    name: Смартфон Apple iPhone XR 128GB (синий)
-    price: 60000
-    price_rrc: 64990
-    quantity: 7
-    parameters:
-      - name: Диагональ (дюйм)
-        value: 6.1
-      - name: Разрешение (пикс)
-        value: 1792x828
-      - name: Встроенная память (Гб)
-        value: 256
-      - name: Цвет
-        value: синий
+      "Диагональ (дюйм)": 2.4
+      "Время непрерывной работы (ч)": 12
+      "Встроенная память (Гб)": нет
+      "Цвет": бирюзовый
