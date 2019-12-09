@@ -1,0 +1,173 @@
+[
+  {
+    "model": "backend.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$FoWfyUGXYULB$8Ckv6HWfmf4PkpOPasWcFBHnXtd1AlIXiMst/UH6wMI=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "test_buyer",
+      "first_name": "",
+      "last_name": "",
+      "email": "test_buyer@dom.com",
+      "is_staff": true,
+      "date_joined": "2019-12-07T10:41:35.464Z",
+      "type": "buyer",
+      "company": "",
+      "position": "",
+      "is_active": true,
+      "verification_uuid": "2fbd0ebe-e914-4ee0-9f8f-19c04f4ba3f9",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "backend.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$150000$DisGVOJ5MQiy$JsFllDSHdOAzY7caT8rIF8wHjWQh5y87YrOoZTZ4A2I=",
+      "last_login": null,
+      "is_superuser": true,
+      "username": "test_seller",
+      "first_name": "",
+      "last_name": "",
+      "email": "test_seller@dom.com",
+      "is_staff": true,
+      "date_joined": "2019-12-07T10:42:01.973Z",
+      "type": "shop",
+      "company": "",
+      "position": "",
+      "is_active": true,
+      "verification_uuid": "47289341-58c3-403f-a481-2783c50d0aa5",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "backend.contact",
+    "pk": 1,
+    "fields": {
+      "user": ["test_buyer"],
+      "city": "test_city",
+      "street": "test_street",
+      "house": "1",
+      "structure": "",
+      "building": "",
+      "apartment": "1",
+      "phone": "11111111"
+    }
+  },
+  {
+    "model": "backend.shop",
+    "pk": 1,
+    "fields": {
+      "name": "Test Seller's shop",
+      "url": "",
+      "user": ["test_seller"],
+      "state": false
+    }
+  },
+  {
+    "model": "backend.category",
+    "pk": 1,
+    "fields": {
+      "name": "test",
+      "shops": [1]
+    }
+  },
+  {
+    "model": "backend.product",
+    "pk": 1,
+    "fields": {
+      "name": "Test product",
+      "category": 1,
+      "on_sale": true
+    }
+  },
+  {
+    "model": "backend.productinfo",
+    "pk": 1,
+    "fields": {
+      "model": "test model",
+      "external_id": 123,
+      "product": 1,
+      "shop": 1,
+      "quantity": 11,
+      "price": 100,
+      "price_rrc": 150
+    }
+  },
+  {
+    "model": "backend.parameter",
+    "pk": 1,
+    "fields": {
+      "name": "test parameter"
+    }
+  },
+  {
+    "model": "backend.productparameter",
+    "pk": 1,
+    "fields": {
+      "product_info": 1,
+      "parameter": 1,
+      "value": "test value"
+    }
+  },
+  {
+    "model": "backend.order",
+    "pk": 1,
+    "fields": {
+      "external_id": 1,
+      "user": ["test_buyer"],
+      "dt": "2019-12-07T11:02:03.533Z",
+      "state": "new",
+      "contact": 1,
+      "shop": 1,
+      "total_summ": 150,
+      "order_pdf": "D:\\Netology\\Diplom\\pd-diplom\\orders\\orders_pdf\\\u0417\u0430\u043a\u0430\u0437_5.pdf",
+      "items": [1]
+    }
+  },
+  {
+    "model": "backend.orderitem",
+    "pk": 1,
+    "fields": {
+      "order": 1,
+      "product_info": 1,
+      "quantity": 1
+    }
+  },
+  {
+    "model": "backend.cart",
+    "pk": 1,
+    "fields": {
+      "user": ["test_buyer"],
+      "items": [1]
+    }
+  },
+  {
+    "model": "backend.cartitem",
+    "pk": 1,
+    "fields": {
+      "cart": 1,
+      "product_info": 1,
+      "quantity": 1
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "1f928e4841b1f8a616d7735d822c47266a83dacf",
+    "fields": {
+      "user": ["test_seller"],
+      "created": "2019-12-07T10:43:45.215Z"
+    }
+  },
+  {
+    "model": "authtoken.token",
+    "pk": "9b214a15b53bf1d2fe7a24b26543c80f6b688bc1",
+    "fields": {
+      "user": ["test_buyer"],
+      "created": "2019-12-07T10:43:49.272Z"
+    }
+  }
+]
