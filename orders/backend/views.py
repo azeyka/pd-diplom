@@ -8,8 +8,10 @@ from rest_framework.authtoken.models import Token
 from yaml import load as load_yaml, Loader
 from requests import get
 from django.db.models import signals
+from django.shortcuts import get_object_or_404
 
 from backend.modules.create_pdf import Pdf
+from backend.modules.yaml_data_validator import is_valid as is_data_valid
 from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 
@@ -186,6 +188,7 @@ class AccountInfo(APIView):
         # Изменение данных
         serializer = UserSerializer(
             request.user, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return JsonResponse({'Status': True, 'Info': serializer.data})
@@ -235,7 +238,7 @@ class AccountContacts(APIView):
         serializer = ContactSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return JsonResponse({'Status': True})
+            return JsonResponse({'Status': True, 'Info': serializer.data})
         else:
             return JsonResponse({'Status': False, 'Errors': serializer.errors})
 
@@ -265,21 +268,21 @@ class AccountContacts(APIView):
             return JsonResponse({'Status': False, 'Errors': 'Пользователь не авторизован'})
 
         id = request.data.get('id')
-        if id:
-            try:
-                contact = Contact.objects.get(
-                    id=request.data['id'], user=request.user)
-                serializer = ContactSerializer(
-                    contact, data=request.data, partial=True)
-                if serializer.is_valid():
-                    serializer.save()
-                    return JsonResponse({'Status': True})
-                else:
-                    return JsonResponse({'Status': False, 'Errors': serializer.errors})
-            except Contact.DoesNotExist:
-                return JsonResponse({'Status': False, 'Errors': 'Адреса с таким ID не существует'})
-        else:
+        if not id:
             return JsonResponse({'Status': False, 'Errors': 'Нет ID адреса'})
+
+        try:
+            contact = Contact.objects.get(
+                id=request.data['id'], user=request.user)
+            serializer = ContactSerializer(
+                contact, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({'Status': True, 'Info': serializer.data})
+            else:
+                return JsonResponse({'Status': False, 'Errors': serializer.errors})
+        except Contact.DoesNotExist:
+            return JsonResponse({'Status': False, 'Errors': 'Адреса с таким ID не существует'})
 
 
 class PartnerView(APIView):
@@ -442,7 +445,7 @@ class ParthnerProducts(APIView):
             except ValidationError as e:
                 return JsonResponse({'Status': False, 'Error': str(e)})
         else:
-            return JsonResponse({'Status': False, 'Errors': 'Не указаны необходимые аргументы'})
+            return JsonResponse({'Status': False, 'Errors': 'Не указаны необходимые аргументы.'})
 
         data = load_yaml(stream, Loader=Loader)
         shop_name = data.get('shop')
@@ -456,18 +459,22 @@ class ParthnerProducts(APIView):
         else:
             # Проверка авторизован ли пользователь
             if not request.user.is_authenticated:
-                return JsonResponse({'Status': False, 'Error': 'Пользователь не авторизован'})
+                return JsonResponse({'Status': False, 'Error': 'Пользователь не авторизован.'})
 
             # Проверка является ли пользователь магазином
             if request.user.type != 'shop':
-                return JsonResponse({'Status': False, 'Error': 'Только для магазинов'})
+                return JsonResponse({'Status': False, 'Error': 'Только для магазинов.'})
 
             shop = Shop.objects.only('id').get(user_id=request.user.id)
+
+        if not is_data_valid(data):
+            return JsonResponse({'Status': False, 'Error': 'Отправленные данные не валидны.'})
 
         do_import.delay(data, shop.id)
         return JsonResponse({'Status': True})
 
     # Удаление продукта
+
     def delete(self, request, *args, **kwargs):
         # Проверка авторизован ли пользователь
         if not request.user.is_authenticated:
