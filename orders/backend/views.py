@@ -497,14 +497,15 @@ class ParthnerProducts(APIView):
         if not id:
             return JsonResponse({'Status': False, 'Errors': 'Не указан ID продукта'})
 
+        product_infos = ProductInfo.objects.select_related('product', 'shop')
         try:
             shop = Shop.objects.get(user=request.user)
-            product = Product.objects.get(
-                product_infos__external_id=id, product_infos__shop=shop)
+            product = product_infos.get(external_id=id, shop=shop).product
 
             # Проверка есть ли у этого магазина продукты в этой категории, помимо удаляемого
-            another_products_in_category = Product.objects.filter(category=product.category,
-                                                                  product_infos__shop=shop).exclude(id=product.id)
+            another_products_in_category = product_infos.filter(
+                product__category=product.category, shop=shop).exclude(product__id=product.id)
+
             # Если есть, то удаляем у категории этот магазин
             if (another_products_in_category):
                 product.category.shops.remove(shop)
@@ -544,7 +545,8 @@ class ProductView(APIView):
 
     # Получение списка всех продуктов
     def get(self, request, *args, **kwargs):
-        products = ProductInfo.objects.all()
+        products = ProductInfo.objects.select_relsted(
+            'shop', 'product', 'product_parameters').all()
         serializer = ProductInfoSerializer(products, many=True)
         return JsonResponse({'Status': True, 'Info': serializer.data})
 
@@ -688,7 +690,8 @@ class OrderView(APIView):
             return JsonResponse({'Status': False, 'Error': 'Пользователь не авторизован'})
 
         # Заказы пользователя
-        orders = Order.objects.filter(user=request.user)
+        orders = Order.objects.filter(user=request.user).prefectch_related('items').select_related(
+            'contact', 'shop', 'user')
         serializer = OrderSerializer(orders, many=True)
         info = {'user': serializer.data}
 
