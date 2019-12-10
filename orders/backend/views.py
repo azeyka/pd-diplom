@@ -114,11 +114,17 @@ class ConfirmEmail(APIView):
     """
 
     def post(self, request, *args, **kwargs):
+        uuid = request.data.get('uuid')
+        if not uuid:
+            return JsonResponse({'Status': False, 'Errors': 'Нет uuid'})
+
         try:
             user = User.objects.get(
-                verification_uuid=request.data.get('uuid'), is_active=False)
+                verification_uuid=uuid, is_active=False)
         except User.DoesNotExist:
             return JsonResponse({'Status': False, 'Errors': 'Пользователь не существует или уже подтвержден.'})
+        except ValidationError:
+            return JsonResponse({'Status': False, 'Errors': 'Не валидный uuid'})
 
         user.is_active = True
         user.save()
@@ -129,8 +135,10 @@ class LogIn(APIView):
     """
         Класс для авторизации пользователя с помощью токена
     """
+    throttle_scope = 'login'
 
     def post(self, request, *args, **kwargs):
+        print(self.throttle_scope)
         # Проверяем заполнено ли имя пользователя
         username = request.data.get('username')
         if not username:
