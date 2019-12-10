@@ -17,7 +17,7 @@ from reportlab.lib.styles import ParagraphStyle
 
 from django.utils.translation import activate, ugettext as _
 from backend.models import User, Contact, Shop, Category, ProductInfo, Product, Parameter, \
-    ProductParameter, CartItem, Order, OrderItem, Cart, user_post_save
+    ProductParameter, CartItem, Order, OrderItem, Cart, user_post_save, STATE_CHOICES
 from backend.serializers import UserSerializer, ContactSerializer, CategorySerializer, ProductInfoSerializer, \
     ShopSerializer, OrderSerializer, CartSerializer
 from .tasks import do_import, send_email
@@ -705,13 +705,15 @@ class OrderView(APIView):
         if len(cart_items) == 0:
             return JsonResponse({'Status': False, 'Errors': 'Корзина пуста'})
 
-        # Проверка указан ли адрес
+        # Проверка адреса
         contact_id = request.data.get('contact')
-        if contact_id:
-            try:
-                contact = Contact.objects.get(id=contact_id)
-            except Contact.DoesNotExist:
-                return JsonResponse({'Status': False, 'Errors': 'Нет ID адреса, либо адреса с таким ID не существует'})
+        if not contact_id:
+            return JsonResponse({'Status': False, 'Errors': 'Нет ID адреса'})
+
+        try:
+            contact = Contact.objects.get(id=contact_id)
+        except Contact.DoesNotExist:
+            return JsonResponse({'Status': False, 'Errors': 'Адреса с таким ID не существует'})
 
         prev_order = None
         # Заголовки будущей таблицы для pdf
@@ -774,7 +776,7 @@ class OrderView(APIView):
                 [
                     i,
                     Paragraph(cart_item.product_info.product.name,
-                              ParagraphStyle('paragraph', fontName='Arial')),
+                              ParagraphStyle('paragraph', fontName='Helvetica')),
                     f'{price} руб.',
                     quantity,
                     f'{summ} руб.'
@@ -803,13 +805,22 @@ class OrderView(APIView):
         if not request.user.is_authenticated:
             return JsonResponse({'Status': False, 'Error': 'Пользователь не авторизован'})
 
-        # Проверка указано ли ID товара и его новый статус
+        # Проверка указано ли ID заказа и его новый статус
         id = request.data.get('id')
         state = request.data.get('state')
         if not id or not state:
-            return JsonResponse({'Status': False, 'Errors': 'Нет id заказа или state'})
+            return JsonResponse({'Status': False, 'Errors': 'Нет id заказа или статуса'})
 
-        # Проверка ID товара
+        # Проверка есть ли вариант указанного статуса
+        is_choice_exist = False
+        for state_choice in STATE_CHOICES:
+            if state_choice[0] == state:
+                is_choice_exist = True
+                break
+        if not is_choice_exist:
+            return JsonResponse({'Status': False, 'Errors': 'Указан не правильный статус'})
+
+        # Проверка ID заказа
         try:
             order = Order.objects.get(id=id)
         except Order.DoesNotExist:
