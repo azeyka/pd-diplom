@@ -6,13 +6,22 @@ from .tasks import send_email
 from django.urls import reverse
 import uuid
 
+STATE_CHOICES = (
+    ('new', 'Новый'),
+    ('confirmed', 'Подтвержден'),
+    ('assembled', 'Собран'),
+    ('sent', 'Отправлен'),
+    ('delivered', 'Доставлен'),
+    ('canceled', 'Отменен'),
+)
+
+USER_TYPE_CHOICES = (
+    ('shop', 'Магазин'),
+    ('buyer', 'Покупатель'),
+)
+
 
 class User(AbstractUser):
-    USER_TYPE_CHOICES = (
-        ('shop', 'Магазин'),
-        ('buyer', 'Покупатель'),
-    )
-
     type = models.CharField(verbose_name='Тип пользователя',
                             choices=USER_TYPE_CHOICES, max_length=5, default='buyer')
     company = models.CharField(
@@ -230,11 +239,6 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Заказанная позиция'
         verbose_name_plural = "Список заказанных позиций"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['order_id', 'product_info'], name='unique_order_item'),
-        ]
-
 
 class Cart(models.Model):
     user = models.ForeignKey(
