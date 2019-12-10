@@ -69,7 +69,7 @@ coverage.xml
 
 
 
-
+orders/backend/migrations
 */migrations/*
 .log
 db.sqlite3
