@@ -161,6 +161,13 @@ class ProductInfo(models.Model):
                 fields=['product', 'shop', 'external_id'], name='unique_product_info'),
         ]
 
+    def __str__(self):
+        return self.product.name
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.select_related('product')
+
 
 class Parameter(models.Model):
     name = models.CharField(max_length=40, verbose_name='Название')
@@ -226,6 +233,10 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ №{self.id}, магазин {self.shop.name}'
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.select_related('shop')
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, verbose_name='Заказ', related_name='ordered_items', blank=True,
@@ -240,6 +251,7 @@ class OrderItem(models.Model):
         verbose_name = 'Заказанная позиция'
         verbose_name_plural = "Список заказанных позиций"
 
+
 class Cart(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, verbose_name='Пользователь')
@@ -247,7 +259,8 @@ class Cart(models.Model):
         'CartItem', related_name='cart_items', blank=True)
 
     class Meta:
-        verbose_name_plural = 'Корзина'
+        verbose_name = 'Корзина'
+        verbose_name_plural = 'Корзины'
 
     def __str__(self):
         return f'Корзина {self.user}'
@@ -261,4 +274,11 @@ class CartItem(models.Model):
     quantity = models.IntegerField(verbose_name='Количество', default=0)
 
     def __str__(self):
-        return f'{self.product_info.external_id} ({self.quantity}шт.)'
+        return f'{self.product_info.product} ({self.quantity}шт.)'
+
+    class Meta:
+        verbose_name_plural = 'Список товаров корзины'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.select_related('product_info', 'product_info__product')
