@@ -156,10 +156,6 @@ class ProductInfo(models.Model):
     class Meta:
         verbose_name = 'Информация о продукте'
         verbose_name_plural = "Информационный список о продуктах"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['product', 'shop', 'external_id'], name='unique_product_info'),
-        ]
 
     def __str__(self):
         return self.product.name
@@ -192,10 +188,6 @@ class ProductParameter(models.Model):
     class Meta:
         verbose_name = 'Параметр'
         verbose_name_plural = "Список параметров"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['product_info', 'parameter'], name='unique_product_parameter'),
-        ]
 
 
 class Order(models.Model):
