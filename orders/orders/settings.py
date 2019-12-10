@@ -125,12 +125,17 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Email
+
 EMAIL_HOST = 'smtp.mail.ru'
 EMAIL_PORT = 2525
 EMAIL_HOST_USER = "mail_for_exmple@mail.ru"
 EMAIL_HOST_PASSWORD = "HelloWorld!"
 EMAIL_USE_TLS = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+
+# REST_FRAMEWORK
 
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
@@ -142,10 +147,18 @@ REST_FRAMEWORK = {
     ),
 
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        # 'rest_framework.authentication.SessionAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '50/day',
+        'user': '200/day',
+        'login': '5/min',
+    }
 
 }
 
@@ -153,6 +166,8 @@ REST_FRAMEWORK = {
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Celery
 
 BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-52-31-43-246.eu-west-1.compute.amazonaws.com:10469'
 ACCEPT_CONTENT = ['json']
