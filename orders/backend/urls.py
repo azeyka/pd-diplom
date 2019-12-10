@@ -8,7 +8,6 @@ router.register('categories', CategoryViewSet, basename='categories')
 
 urlpatterns = [
     path('registration/', UserView.as_view()),
-    path('confirmation/', ConfirmEmail.as_view()),
     path('login/', LogIn.as_view()),
     path('info/', AccountInfo.as_view()),
     path('contact/', AccountContacts.as_view()),
@@ -18,6 +17,6 @@ urlpatterns = [
     path('partner_products/', ParthnerProducts.as_view()),
     path('cart/', UserCart.as_view()),
     path('order/', OrderView.as_view()),
-    path('verify/', ConfirmEmail.as_view(), name='verify'),
+    path('verify/', ConfirmEmail.as_view()),
     path('', include(router.urls))
 ]
