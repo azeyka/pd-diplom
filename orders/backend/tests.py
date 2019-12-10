@@ -1,5 +1,5 @@
-from django.test import TestCase, Client, override_settings
-from backend.models import User, Contact, Shop, ProductInfo
+from django.test import TestCase, Client, override_settings, modify_settings
+from backend.models import User, Contact, Shop, ProductInfo, Category, Order
 from django.contrib import auth
 import json
 from urllib.parse import urlencode
@@ -11,18 +11,21 @@ import yaml
 import os
 from requests import get
 
-TEST_EMAIL = 'test@dom.com'
-TEST_USERNAME = 'test'
-TEST_PASS = '123456789Test'
-TEST_SHOPNAME = 'TestShop'
 CLIENT = APIClient()
+FIXTURES = 'backend/test_data/fixtures.json'
 
 
 class SignUpTestCase(TestCase):
-    @override_settings(EMAIL_BACKEND='django.core.mail.backends.dummy.EmailBackend')
     def test_signup(self):
         response = CLIENT.post(
-            '/api/registration/', {'username': TEST_USERNAME, 'email': TEST_EMAIL, 'password': TEST_PASS, 'password_repeat': TEST_PASS})
+            '/api/registration/',
+            {
+                'username': 'test',
+                'email': 'test@dom.com',
+                'password': '123456789Test',
+                'password_repeat': '123456789Test'
+            }
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['Status'], True)
@@ -44,63 +47,74 @@ class SignUpTestCase(TestCase):
 
 
 class AuthTestCase(TestCase):
+    fixtures = [FIXTURES]
+
     def setUp(self):
-        self.token = None
-        self.u = User.objects.create_user(TEST_USERNAME, TEST_EMAIL, TEST_PASS)
-        self.token = Token.objects.create(user=self.u)
+        self.new_user = User.objects.get(username='test_not_active_user')
+
+        self.buyer_token = Token.objects.select_related(
+            'user').get(user__username='test_buyer')
 
     def test_confirm_user(self):
         response = CLIENT.post('/api/confirmation/',
-                               {'uuid': self.u.verification_uuid})
+                               {'uuid': self.new_user.verification_uuid})
 
-        self.u.refresh_from_db()
-        self.assertEqual(response.status_code, 200)
+        self.new_user.refresh_from_db()
         self.assertEqual(response.json()['Status'], True)
-        self.assertEqual(self.u.is_active, True)
+        self.assertEqual(self.new_user.is_active, True)
 
     def test_login(self):
-        self.u.is_active = True
-        self.u.save()
         response = CLIENT.post(
-            '/api/login/', {'username': TEST_USERNAME, 'password': TEST_PASS})
+            '/api/login/', {'username': self.buyer_token.user.username, 'password': 123456})
 
-        self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['token'], self.token.key)
+        self.assertEqual(data['Info']['token'], self.buyer_token.key)
 
 
 class AccountInfoTestCase(TestCase):
-    def setUp(self):
-        self.token = None
-        self.u = User.objects.create_user(TEST_USERNAME, TEST_EMAIL, TEST_PASS)
-        self.u.is_active = True
-        self.u.save()
-        self.token = Token.objects.create(user=self.u)
-        self.contact = Contact.objects.create(
-            user=self.u, city='Saint-Petersburg', street='Zenitchikov', house=3, phone='895555555555')
+    fixtures = [FIXTURES]
 
-    def test_get_info(self):
+    def setUp(self):
+        self.token = Token.objects.select_related(
+            'user').get(user__username='test_buyer')
+
+    def test_get_account_info(self):
         response = CLIENT.get(
             '/api/info/', HTTP_AUTHORIZATION=f'Token {self.token.key}')
 
         data = response.json()
         self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['username'], self.u.username)
-        self.assertEqual(data['Info']['email'], self.u.email)
-        self.assertEqual(data['Info']['type'], self.u.type)
+        self.assertEqual(data['Info']['username'], self.token.user.username)
+        self.assertEqual(data['Info']['email'], self.token.user.email)
+        self.assertEqual(data['Info']['type'], self.token.user.type)
 
-    def test_change_info(self):
+    def test_change_account_info(self):
         response = CLIENT.put(
             '/api/info/',
             {'first_name': 'Test Name', 'last_name': 'Test Surname'},
             HTTP_AUTHORIZATION=f'Token {self.token.key}'
         )
 
-        self.u.refresh_from_db()
+        self.token.refresh_from_db()
         self.assertEqual(response.json()['Status'], True)
-        self.assertEqual(self.u.first_name, 'Test Name')
-        self.assertEqual(self.u.last_name, 'Test Surname')
+        self.assertEqual(self.token.user.first_name, 'Test Name')
+        self.assertEqual(self.token.user.last_name, 'Test Surname')
+
+
+class ContactTestCase(TestCase):
+    fixtures = [FIXTURES]
+
+    def setUp(self):
+        self.token = Token.objects.select_related(
+            'user').get(user__username='test_buyer')
+
+    def test_get_contacts(self):
+        response = CLIENT.get(
+            '/api/contact/', HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(type(data['Info']), list)
 
     def test_create_contact(self):
         response = CLIENT.post(
@@ -112,14 +126,7 @@ class AccountInfoTestCase(TestCase):
 
         data = response.json()
         self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['user'], self.u.id)
-
-    def test_get_contacts(self):
-        response = CLIENT.get(
-            '/api/contact/', HTTP_AUTHORIZATION=f'Token {self.token.key}')
-        data = response.json()
-        self.assertEqual(data['Status'], True)
-        self.assertEqual(type(data['Info']), list)
+        self.assertEqual(data['Info']['user'], self.token.user.id)
 
     def test_change_contact(self):
         response = CLIENT.put(
@@ -147,48 +154,42 @@ class AccountInfoTestCase(TestCase):
 
 
 class ShopTestCase(TestCase):
-    def setUp(self):
-        self.u = User.objects.create_user(TEST_USERNAME, TEST_EMAIL, TEST_PASS)
-        self.u.is_active = True
-        self.u.save()
-        self.token = Token.objects.create(user=self.u)
+    fixtures = [FIXTURES]
 
-    def test_register_and_deleteShop(self):
+    def setUp(self):
+        self.seller_token = Token.objects.select_related(
+            'user').get(user__username='test_seller')
+        self.buyer_token = Token.objects.select_related(
+            'user').get(user__username='test_buyer')
+        self.shop = Shop.objects.get(user=self.seller_token.user)
+
+    def test_register_and_delete_shop(self):
         response = CLIENT.post(
             '/api/partner/',
-            {'agreement': True, 'name': TEST_SHOPNAME},
-            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+            {'agreement': True, 'name': 'Buyer Shop'},
+            HTTP_AUTHORIZATION=f'Token {self.buyer_token.key}'
         )
 
-        self.u.refresh_from_db()
-        self.assertEqual(self.u.type, 'shop')
+        self.buyer_token.refresh_from_db()
+        self.assertEqual(self.buyer_token.user.type, 'shop')
 
         response = CLIENT.delete(
             '/api/partner/',
-            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+            HTTP_AUTHORIZATION=f'Token {self.buyer_token.key}'
         )
 
-        self.u.refresh_from_db()
-        self.assertEqual(self.u.type, 'buyer')
-
-
-class ShopTestCase(TestCase):
-    def setUp(self):
-        self.u = User.objects.create_user(TEST_USERNAME, TEST_EMAIL, TEST_PASS)
-        self.u.is_active = True
-        self.u.save()
-        self.token = Token.objects.create(user=self.u)
-        self.shop = Shop.objects.create(user=self.u, name=TEST_SHOPNAME)
+        self.buyer_token.refresh_from_db()
+        self.assertEqual(self.buyer_token.user.type, 'buyer')
 
     def test_get_shop_info_owner(self):
         response = CLIENT.post(
             '/api/partner_info/',
-            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+            HTTP_AUTHORIZATION=f'Token {self.seller_token.key}'
         )
 
         data = response.json()
         self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['user'], self.u.id)
+        self.assertEqual(data['Info']['user'], self.seller_token.user.id)
 
     def test_get_shop_info_ID(self):
         response = CLIENT.post(
@@ -198,25 +199,27 @@ class ShopTestCase(TestCase):
 
         data = response.json()
         self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['user'], self.u.id)
+        self.assertEqual(data['Info']['user'], self.seller_token.user.id)
 
     def test_change_shop_info(self):
+        self.assertEqual(self.shop.name, "Test Seller's shop")
+
         response = CLIENT.put(
             '/api/partner_info/',
             {'name': 'Shop'},
-            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+            HTTP_AUTHORIZATION=f'Token {self.seller_token.key}'
         )
-        data = response.json()
-        self.assertEqual(data['Status'], True)
-        self.assertEqual(data['Info']['name'], 'Shop')
+
+        self.assertEqual(response.json()['Status'], True)
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.name, 'Shop')
 
 
 class ProductTestCase(TestCase):
-    fixtures = ['backend/test_data/fixtures.json']
+    fixtures = [FIXTURES]
 
     def setUp(self):
-        self.u = User.objects.get(username='test_seller')
-        self.token = Token.objects.get(user=self.u)
+        self.token = Token.objects.get(user__username='test_seller')
         self.product = ProductInfo.objects.select_related(
             'product', 'product__category').get(product__name='Test product')
 
@@ -263,12 +266,10 @@ class ProductTestCase(TestCase):
                        CELERY_EAGER_PROPAGATES_EXCEPTIONS=True,
                        BROKER_BACKEND='memory')
     def test_change_product(self):
-        self.assertEqual(self.product.product.name, 'Test product')
-
         data = {
             'goods': [
                 {
-                    'id': 1,
+                    'id': 123,
                     'category': self.product.product.category.name,
                     'model': self.product.model,
                     'name': 'Test product changed',
@@ -281,60 +282,142 @@ class ProductTestCase(TestCase):
         }
 
         yaml_data = yaml.dump(data)
-        print(yaml_data)
         response = CLIENT.post(
             '/api/partner_products/',
             {'yaml': yaml_data},
             HTTP_AUTHORIZATION=f'Token {self.token.key}'
         )
 
-        print(response.json())
-
         self.assertEqual(response.json()['Status'], True)
-        # self.product.product.refresh_from_db()
-        self.product = ProductInfo.objects.select_related(
-            'product', 'product__category').get(product__name='Test product')
+        self.product.refresh_from_db()
         self.assertEqual(self.product.product.name, 'Test product changed')
 
     def test_delete_product(self):
-        pass
+        response = CLIENT.delete(
+            '/api/partner_products/',
+            {'id': 123},
+            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+        )
+
+        self.assertEqual(response.json()['Status'], True)
+        self.assertEqual(len(ProductInfo.objects.all()), 0)
 
     def test_get_product(self):
         pass
 
 
 class CategoryTestCase(TestCase):
-    def setUp(self):
-        self.u = User.objects.create_user(TEST_USERNAME, TEST_EMAIL, TEST_PASS)
-        self.u.is_active = True
-        self.u.save()
-        self.token = Token.objects.create(user=self.u)
-        self.shop = Shop.objects.create(user=self.u, name=TEST_SHOPNAME)
+    fixtures = [FIXTURES]
 
-    def test_get_category(self):
-        pass
+    def test_get_category_all(self):
+        response = CLIENT.get(
+            '/api/categories/',
+        )
+
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(len(data['Info']), 2)
+
+    def test_get_category_shop_id(self):
+        response = CLIENT.get(
+            '/api/categories/1/',
+        )
+
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(len(data['Info']), 1)
+        self.assertEqual(data['Info'][0]['name'], 'test')
 
 
 class CartTestCase(TestCase):
+    fixtures = [FIXTURES]
+
     def setUp(self):
-        pass
+        self.token = Token.objects.get(user__username='test_buyer')
 
     def test_get_cart(self):
-        pass
+        response = CLIENT.get(
+            '/api/cart/',
+            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+        )
 
-    def test_add_to_cart(self):
-        pass
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(data['Info']['cart']['items'][0]['quantity'], 1)
+
+    def test_add_to_cart_plus_one(self):
+        response = CLIENT.post(
+            '/api/cart/',
+            {
+                'id': 1,
+                'operator': '+'
+            },
+            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+        )
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(data['Info']['quantity'], 2)
+
+    def test_add_to_cart_minus_one(self):
+        response = CLIENT.post(
+            '/api/cart/',
+            {
+                'id': 1,
+                'operator': '-'
+            },
+            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+        )
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(data['Info']['quantity'], 0)
+
+    def test_add_to_cart_change_count(self):
+        response = CLIENT.post(
+            '/api/cart/',
+            {
+                'id': 1,
+                'count': 9
+            },
+            HTTP_AUTHORIZATION=f'Token {self.token.key}'
+        )
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(data['Info']['quantity'], 9)
 
 
 class OrderTestCase(TestCase):
+    fixtures = [FIXTURES]
+
     def setUp(self):
-        pass
+        self.seller_token = Token.objects.get(user__username='test_seller')
+        self.buyer_token = Token.objects.get(user__username='test_buyer')
 
     def test_get_orders(self):
-        pass
+        response = CLIENT.get(
+            '/api/order/',
+            HTTP_AUTHORIZATION=f'Token {self.seller_token.key}'
+        )
+        data = response.json()
+        self.assertEqual(data['Status'], True)
+        self.assertEqual(len(data['Info']['user']), 0)
+        self.assertEqual(len(data['Info']['shop']), 1)
+        self.assertEqual(data['Info']['shop'][0]['state'], 'Новый')
+
+    def test_change_order_state(self):
+        response = CLIENT.put(
+            '/api/order/',
+            {'id': 1, 'state': 'confirmed'},
+            HTTP_AUTHORIZATION=f'Token {self.seller_token.key}'
+        )
+
+        self.assertEqual(response.json()['Status'], True)
 
     def test_create_order(self):
-        pass
+        response = CLIENT.post(
+            '/api/order/',
+            {'contact': 1},
+            HTTP_AUTHORIZATION=f'Token {self.buyer_token.key}'
+        )
 
-    def test_change_order_status(self):
-        pass
+        data = response.json()
+        self.assertEqual(data['Status'], True)
