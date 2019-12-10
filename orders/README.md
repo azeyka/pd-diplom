@@ -21,3 +21,6 @@
    `npm install`
 3. Запуск
    `npm start`
+
+# Postman collection
+https://www.getpostman.com/collections/6e87c93b49fa334bb7ec
