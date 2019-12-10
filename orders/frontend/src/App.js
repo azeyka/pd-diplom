@@ -11,7 +11,6 @@ import Notification from "./components/Elements/Notification";
 import Signup from "./components/Content/Authentication/Signup";
 import Login from "./components/Content/Authentication/Login";
 import Logout from "./components/Content/Authentication/Logout";
-import Confirmation from "./components/Content/Authentication/Confirmation";
 import ShopProducts from "./components/Content/Catalog/ShopProducts";
 import Settings from "./components/Content/Settings/Settings";
 import RegiserShop from "./components/Content/UserShop/RegiserShop";
@@ -37,7 +36,6 @@ function App() {
             <Route path="/signup" component={Signup} />
             <Route path="/login" component={Login} />
             <Route path="/logout" component={Logout} />
-            <Route path="/confirm/:username" component={Confirmation} />
             <Route path="/verify/:uuid" component={Verification} />
             <Route path="/settings" component={Settings} />
             <Route path="/regiser_shop" component={RegiserShop} />
