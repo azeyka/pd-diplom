@@ -154,6 +154,6 @@ REST_FRAMEWORK = {
 
 STATIC_URL = '/static/'
 
-CELERY_BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-52-31-43-246.eu-west-1.compute.amazonaws.com:10469'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERILIZER = 'json'
+BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-52-31-43-246.eu-west-1.compute.amazonaws.com:10469'
+ACCEPT_CONTENT = ['json']
+TASK_SERILIZER = 'json'
