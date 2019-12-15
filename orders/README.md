@@ -23,4 +23,4 @@
    `npm start`
 
 # Postman collection
-https://www.getpostman.com/collections/6e87c93b49fa334bb7ec
+https://documenter.getpostman.com/view/8571751/SWEB1FbC
