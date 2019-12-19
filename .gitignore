@@ -273,3 +273,4 @@ Pipfile.lock
 orders/frontend/package-lock.json
 
 orders/orders_pdf
+orders/media
