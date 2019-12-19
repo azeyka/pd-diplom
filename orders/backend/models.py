@@ -29,6 +29,7 @@ class User(AbstractUser):
     position = models.CharField(
         verbose_name='Должность', max_length=40, blank=True)
     is_active = models.BooleanField(default=False)
+    is_email_sent = models.BooleanField(default=False)
     verification_uuid = models.UUIDField(
         'Уникальный код подтверждения', default=uuid.uuid4)
 
@@ -41,7 +42,7 @@ class User(AbstractUser):
 
 
 def user_post_save(sender, instance, signal, *args, **kwargs):
-    if not instance.is_active:
+    if not instance.is_active and not instance.is_email_sent:
         send_email.delay(
             'Подтверждение почты',
             'Спасибо за регистрцию на нашем сайте!\n\n'
@@ -152,6 +153,8 @@ class ProductInfo(models.Model):
     price = models.PositiveIntegerField(verbose_name='Цена')
     price_rrc = models.PositiveIntegerField(
         verbose_name='Рекомендуемая розничная цена')
+    image = models.ImageField(
+        verbose_name='Изображение', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Информация о продукте'
