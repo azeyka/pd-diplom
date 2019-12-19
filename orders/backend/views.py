@@ -75,10 +75,12 @@ class UserView(APIView):
             return JsonResponse({'Status': False, 'Errors': errors_dict})
 
         # Если ошибок нет, то соханяем пользователя, создаем для него токен авторизации
+
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             # Сохранение пользователя
             user = serializer.save()
+            user.is_email_sent = True
             user.set_password(request.data['password'])
             if 'firstname' in request.data:
                 user.first_name = request.data['firstname']
@@ -690,7 +692,7 @@ class OrderView(APIView):
             return JsonResponse({'Status': False, 'Error': 'Пользователь не авторизован'})
 
         # Заказы пользователя
-        orders = Order.objects.filter(user=request.user).prefectch_related('items').select_related(
+        orders = Order.objects.filter(user=request.user).prefetch_related('items').select_related(
             'contact', 'shop', 'user')
         serializer = OrderSerializer(orders, many=True)
         info = {'user': serializer.data}
