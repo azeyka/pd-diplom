@@ -73,7 +73,9 @@ function CategoryProducts({ category, isEmpty, setisEmpty }) {
           <div className="card-deck m-3 text-center shadow-sm">
             {activePageProducts.map(product => (
               <ProductCard key={product.id}>
-                <ProductCardImg />
+                <ProductCardImg
+                  src={product.image ? product.image : undefined}
+                />
                 <ProductCardBody product={product} />
               </ProductCard>
             ))}
