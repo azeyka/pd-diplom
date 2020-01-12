@@ -23,10 +23,9 @@ def send_email(title, body, to, files_path=None):
 @shared_task
 def do_import(data, shop_id):
     from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
-    print(shop_id, Shop.objects.all()[0].id)
-    shop = Shop.objects.get(id=shop_id)
 
-    # Добавление категорий
+    shop = Shop.objects.get(id=shop_id)
+   # Добавление категорий
     if data.get('categories'):
         for category in data.get('categories'):
             category_id = category.get('id')
