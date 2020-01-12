@@ -82,7 +82,10 @@ function ProductInfo(props) {
     <Container>
       <Title className="h4">{product.product.name}</Title>
       <Container className="mt-4 p-3 bg-light border rounded d-flex flex-wrap">
-        <ProductCardImg className="img-fluid bd-placeholder-img col-md-6 p-0 border rounded" />
+        <ProductCardImg
+          className="img-fluid bd-placeholder-img col-md-6 p-0 border rounded"
+          src={product.image ? product.image : undefined}
+        />
         <Col className="col-md-6 align-self-center text-center">
           <Title className="pb-2">
             {product.price_rrc} <span className="text-muted">₽</span>
