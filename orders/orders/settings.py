@@ -157,7 +157,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '50/day',
         'user': '200/day',
-        'login': '20/min',
+        'login': '200/min',
     }
 
 }
@@ -167,12 +167,12 @@ REST_FRAMEWORK = {
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-MEDIA_URL = 'http://127.0.0.1:8000/media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 # Celery
 
-BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-52-31-43-246.eu-west-1.compute.amazonaws.com:10469'
+BROKER_URL = 'redis://h:p1a670f02c762af32ffc24ca5d7fe71da24b09bf69e142be9f146fc07f8a7c33d@ec2-63-35-31-94.eu-west-1.compute.amazonaws.com:18849'
 ACCEPT_CONTENT = ['json']
 TASK_SERILIZER = 'json'
