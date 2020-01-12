@@ -157,7 +157,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '50/day',
         'user': '200/day',
-        'login': '5/min',
+        'login': '20/min',
     }
 
 }
@@ -167,7 +167,7 @@ REST_FRAMEWORK = {
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
-MEDIA_URL = '/media/'
+MEDIA_URL = 'http://127.0.0.1:8000/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
